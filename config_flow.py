@@ -9,8 +9,8 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN  # pylint:disable=unused-import
 
-from .aionuki import NukiBridge
-from .aionuki.exceptions import InvalidCredentialsException
+from aionuki import NukiBridge
+from aionuki.exceptions import InvalidCredentialsException
 
 _LOGGER = logging.getLogger(__name__)
 
