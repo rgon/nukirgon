@@ -28,3 +28,4 @@ This is Alpha software far from being in an usable state.
 + Opener integration
 + Parametrized Opener/Lock creation and platform setup
 + Remove all debug print()s
++ Set password in config flow/configuration.yaml
