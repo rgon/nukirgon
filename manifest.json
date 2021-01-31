@@ -1,0 +1,13 @@
+{
+  "domain": "nukirgon",
+  "name": "Nuki by rgon",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/nukirgon",
+  "requirements": [
+    "aionuki==2.0.1"
+  ],
+  "codeowners": [
+    "@rgon"
+  ],
+  "quality_scale": "silver"
+}

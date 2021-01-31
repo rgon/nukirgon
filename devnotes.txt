@@ -1,0 +1,156 @@
+Things to keep in mind
+-----------------
+- [x] [Read CLA][https://www.home-assistant.io/developers/cla/]
+- [] Add myself as code owner since this is a significant refactor?
+- [] You will have to add tests that cover these new additions.
+- [Ensure tests work.][https://github.com/home-assistant/core/blob/dev/CONTRIBUTING.md]
+
+Pull request notes:
+* https://github.com/home-assistant/core/pull/43774
+
+
+[home-assistant.io/source/_integrations/nuki.markdown][https://github.com/home-assistant/home-assistant.io/blob/current/source/_integrations/nuki.markdown]
+[Notes][https://developers.home-assistant.io/docs/documenting/standards]
+
+Added functionality
+-----------------
+* Interactive token-less authentication (by pressing the bridge's button).
+* Config flow support (for token-less auth) [ADR-0010][https://github.com/home-assistant/architecture/blob/master/adr/0010-integration-configuration.md#decision]
+* Allows remote, programatic locking and unlocking with optional Pin for either or both of them (as well as Lock n' go).
+* Door sensor integration, can be used as any other sensor.
+* Breaks support for software bridge, untested (deprecated Jan 31st 2021)
+
+Feature improvements
+-----------------
+* Push (added HTTP endpoint for the Nuki API to connect to) [Nuki API endpoint][https://developer.nuki.io/page/nuki-bridge-http-api-1-12/4/#heading--callback] [requested in forum][https://community.home-assistant.io/t/nuki-use-callbacks-instead-of-unreliable-polling/229064]
+* Upgrades dependency (pynuki) that solves an interactive 'token-less' authentication issue [Nuki API endpoint][https://developer.nuki.io/page/nuki-bridge-http-api-1-12/4/#heading--auth]
+* Now passing the Silver 🥈 🥇 integration standard.
+
+
+TODO
+-----------------
+* Opener testing
+* ?
+
+
+Open Issues
+-----------------
+# https://github.com/home-assistant/core/issues/41827
+# https://github.com/home-assistant/core/issues/41460
+# https://github.com/home-assistant/core/issues/37031
+# https://github.com/home-assistant/core/issues/35887
+# https://github.com/home-assistant/core/issues/30607 # probably reproducible WARNING
+# ~Software bridge not working~ Removed: deprecated
+
+
+**************************************************
+https://developers.home-assistant.io/docs/creating_component_code_review
+https://developers.home-assistant.io/docs/development_validation/
+
+# Silver 🥈 #
+This integration is able to cope when things go wrong. It will not print any exceptions nor will it fill the log with retry attempts.
+    - [+] Connection/configuration is handled via a component.
+    - [x] Set an appropriate SCAN_INTERVAL (if a polling integration)
+    - [ ] Raise PlatformNotReady if unable to connect during platform setup (if appropriate)
+    - [ ] Handles expiration of auth credentials. Refresh if possible or print correct error and fail setup. If based on a config entry, should trigger a new config entry flow to re-authorize.
+    - [ ] Handles internet unavailable. Log a warning once when unavailable, log once when reconnected.
+    - [ ] Handles device/service unavailable. Log a warning once when unavailable, log once when reconnected.
+    - [ ] Set available property to False if appropriate (docs)
+    - [ ] Entities have unique ID (if available) (docs)
+
+# Gold 🥇 #
+This is a solid integration that is able to survive poor conditions and can be configured via the user interface.
+    - [ ] Configurable via config entries.
+        Don't allow configuring already configured device/service (example: no 2 entries for same hub)
+        Tests for the config flow
+        Discoverable (if available)
+        Set unique ID in config flow (if available)
+    - [ ] Enities have device info (if available) (docs)
+    - [ ] Tests for fetching data from the integration and controlling it (docs)
+    - [+] Has a code owner (docs)
+    - [ ] Entities only subscribe to updates inside async_added_to_hass and unsubscribe inside async_will_remove_from_hass (docs)
+    - [+] Entities have correct device classes where appropriate (docs)
+    - [ ] Supports entities being disabled and leverages Entity.entity_registry_enabled_default to disable less popular entities (docs)
+    - [ ] If the device/service API can remove entities, the integration should make sure to clean up the entity and device registry.
+
+# Platinum 🏆 #
+Best of the best. The integration is completely async, meaning it's super fast. Integrations that reach platinum level will require approval by the code owner for each PR.
+    - [ ] Set appropriate PARALLEL_UPDATES constant
+    - [+] Support config entry unloading (called when config entry is removed)
+    - [+] Integration + dependency are async
+    - [x] Uses aiohttp and allows passing in websession (if making HTTP requests)
+
+**************************************************
+
+https://github.com/home-assistant/core/pull/38159#issue-456279093
+
+Breaking change
+---------------
+No breaking changes.
+
+
+Proposed change
+---------------
+This PR fixes the nuki component. Due to the fact that the nuki id didn't persist in the Lock/Opener object updates would fail after a while. Typically this occured after a failed aggressive update.
+Please see the [HA issue](#36719) and/or [pynuki issue](https://github.com/pschmitt/pynuki/issues/56#issuecomment-663086560) for more _technical_ information.
+
+Compare view: [pschmitt/pynuki@1.3.7...1.3.8](https://github.com/pschmitt/pynuki/compare/1.3.7...1.3.8)
+
+
+Type of change
+--------------
+- [x] Dependency upgrade [include Commit!!!!!]
+- [x] Bugfix (non-breaking change which fixes an issue)
+- [ ] New integration (thank you!)
+- [x] New feature (which adds functionality to an existing integration)
+- [x] Breaking change (fix/feature causing existing functionality to break)
+- [x] Code quality improvements to existing code or addition of tests
+
+
+Example entry for `configuration.yaml`:
+---------------------------------------
+```
+# Example configuration.yaml
+lock:
+  - platform: nuki
+    host: 192.168.1.120
+    token: fe2345ef
+```
+
+
+Additional information
+----------------------
+
+*   This PR fixes or closes issue: fixes [#36719](https://github.com/home-assistant/core/issues/36719)
+*   This PR is related to issue:
+*   Link to documentation pull request: [todo]
+
+
+Checklist
+----------------------
+- [ ] The code change is tested and works locally.
+- [ ] Local tests pass. **Your PR cannot be merged unless tests pass**
+- [ ] There is no commented out code in this PR.
+- [ ] I have followed the [development checklist](https://developers.home-assistant.io/docs/en/development_checklist.html)
+- [ ] The code has been formatted using Black (`black --fast homeassistant tests`)
+- [ ] Tests have been added to verify that the new code works.
+
+If user exposed functionality or configuration variables are added/changed:
+
+- [ ] Documentation added/updated for [www.home-assistant.io](https://github.com/home-assistant/home-assistant.io)
+
+If the code communicates with devices, web services, or third-party tools:
+
+- [ ] The [manifest file](https://developers.home-assistant.io/docs/en/creating_integration_manifest.html) has all fields filled out correctly.
+    Updated and included derived files by running: `python3 -m script.hassfest`.
+- [ ] New or updated dependencies have been added to `requirements_all.txt`.
+    Updated by running `python3 -m script.gen_requirements_all`.
+- [ ] Untested files have been added to `.coveragerc`.
+
+The integration reached or maintains the following [Integration Quality Scale](https://developers.home-assistant.io/docs/en/next/integration_quality_scale_index.html):
+
+- [ ] No score or internal
+- [ ] ![2nd_place_medal](https://github.githubassets.com/images/icons/emoji/unicode/1f948.png) Silver
+- [ ] ![1st_place_medal](https://github.githubassets.com/images/icons/emoji/unicode/1f947.png) Gold
+- [ ] ![trophy](https://github.githubassets.com/images/icons/emoji/unicode/1f3c6.png) Platinum
+

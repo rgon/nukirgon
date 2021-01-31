@@ -1,0 +1,90 @@
+{
+    "config": {
+        "abort": {
+            "already_in_progress": "Configuration flow is already in progress.",
+            "already_configured": "Device is already configured.",
+            "communtication_error": "Error communicating with the bridge."
+        },
+        "error": {
+            "token_error": "Invalid token.",
+            "interactiveauth_fail": "Couldn't interactively receive the token.",
+            "already_configured_autodiscover": "Discovered device is already configured, manually enter another one.",
+            "data_format_error": "Data format error.",
+            "autodiscover_fail": "Couldn't autodiscover.",
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "description": "Set up Nuki integration. Configuring the connection to a bridge. The Nuki HTTP Bridge API must be activated: https://developer.nuki.io/t/bridge-http-api/26",
+                "title": "Nuki Async API by rgon: 1/4",
+                "data": {
+                    "autodiscover": "Auto discover bridge (using Nuki cloud servers)."
+                }
+            },
+            "read_ip": {
+                "description": "Introduce your bridge's network info.",
+                "title": "Nuki Async API by rgon: 2/4",
+                "data": {
+                    "host": "IP",
+                    "port": "Port"
+                }
+            },
+            "token": {
+                "title": "Nuki Async API by rgon: 3/4",
+                "description": "Found bridge `{bridgeInfo}`, introduce your API token.",
+                "data": {
+                    "token": "Auth Token",
+                    "interactiveauth": "Interactive authentication: press button to retreive token automatically."
+                }
+            },
+            "get_token_interactive": {
+                "title": "Press the bridge's button now. 4/4",
+                "description": "Connecting to the bridge..."
+            },
+            "get_token_manual": {
+                "title": "Testing Config. 4/4",
+                "description": "Connecting to the bridge with supplied token..."
+            },
+            "end": {
+                "title": "Nuki Async API by rgon: Done!",
+                "description": "Finished configuration. Clear other callbacks if no other application is listening for Nuki push events using the HTTP API.",
+                "data": {
+                    "clearcallbacks": "Clear already installed lock callbacks.",
+                    "serverhost": "Server Local IP address."
+                }
+            }
+        },
+        "flow_title": "Nuki Async API by rgon"
+    },
+    "device_automation": {
+        "action_type": {
+            "lock": "Bloquear {entity_name}",
+            "open": "Abrir {entity_name}",
+            "unlock": "Desbloquear {entity_name}",
+            "lock_n_go": "Lock 'n' Go on {entity_name}"
+        },
+        "condition_type": {
+            "is_locked": "{entity_name} est\u00e1 bloqueado",
+            "is_open": "{entity_name} est\u00e1 door open",
+            "is_closed": "{entity_name} est\u00e1 door closed",
+            "is_unlocked": "{entity_name} est\u00e1 desbloqueado"
+        },
+        "trigger_type": {
+            "locked": "{entity_name} bloqueado",
+            "opened": "{entity_name} opened",
+            "closed": "{entity_name} closed",
+            "unlocked": "{entity_name} desbloqueado"
+        }
+    },
+    "state": {
+        "_": {
+            "locked": "Locked",
+            "unlocked": "Unlocked",
+            "locked_open": "Locked, Door open",
+            "unlocked_open": "Unlocked, Door open"
+        }
+    },
+    "title": "nukirgon"
+}
