@@ -29,3 +29,5 @@ This is Alpha software far from being in an usable state.
 + Parametrized Opener/Lock creation and platform setup
 + Remove all debug print()s
 + Set password in config flow/configuration.yaml
++ Door state not changing on lock/unlock
++ Notification for the UI when the code is wrong.
