@@ -224,17 +224,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 next_step_id="interactiveauth_progressdone_mezzanine_err"
             )
 
-    async def async_step_interactiveauth_progressdone_mezzanine_err(
-        self, user_input=None
-    ):
-        return self.async_show_form(
-            step_id="token",
-            data_schema=vol.Schema({vol.Required("token"): str}),
-            errors={"base": "interactiveauth_fail"},
-            description_placeholders={
-                "bridgeInfo": f"{self.config_host}:{self.config_port}"
-            },
-        )
 
     async def async_step_get_token_manual(self, user_input=None):
         if self.token_error:
@@ -246,6 +235,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 next_step_id="end_progressdone_mezzanine"
             )
 
+    async def async_step_interactiveauth_progressdone_mezzanine_err(
+        self, user_input=None
+    ):
+        return self.async_show_form(
+            step_id="token",
+            data_schema=vol.Schema({vol.Required("token"): str}),
+            errors={"base": "interactiveauth_fail"},
+            description_placeholders={
+                "bridgeInfo": f"{self.config_host}:{self.config_port}"
+            },
+        )
+    
     async def async_step_manualtoken_progressdone_mezzanine_err(self, user_input=None):
         _LOGGER.info(f"Step manualtoken, mezz err {user_input}")
 
@@ -293,4 +294,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "server_hostname": self.server_host,
                     "token": self.config_token,
                 },
+            )
+        else:
+            _LOGGER.info(f"Showing form because of {user_input}")
+            autoDiscoveredIP = util.get_local_ip()
+
+            return self.async_show_form(
+                step_id="pre_end",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("serverhost", default=autoDiscoveredIP): str,
+                        vol.Optional("clearcallbacks", default=True): bool,
+                    }
+                ),
             )
