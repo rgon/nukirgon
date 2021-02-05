@@ -90,7 +90,6 @@ async def webhook_handler(
             _LOGGER.error(f"Error handling callback for {queryID}.")
         else:
             _LOGGER.debug(f"Lock exists. {queryID}")
-            await self.callUpdateCallbacks()
         # return Response(text="ok")
     else:
         _LOGGER.error(f"Webhook handled for unknown Nuki Bridge {queryID}")
@@ -147,6 +146,8 @@ class NukiCoordinator:  # Handles the connection to a single bridge
         ''' Called from the webhook callback handler '''
         _LOGGER.debug(f"Callback from nuki bridge event: {event}")
         await self.nukiBridge.interpret_callback(event)
+
+        await self.callUpdateCallbacks()
 
     # --- Interaction with the lock
     async def clearBridgeCallbacks(self):
