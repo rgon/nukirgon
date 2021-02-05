@@ -127,7 +127,7 @@ class NukiCoordinator:  # Handles the connection to a single bridge
         except ValueError:
             _LOGGER.error(f"In {self.name}, webhook {CALLBACK_URL_BASE}_{self.id} already used")
 
-    def registerUpdateCallback(self, callback):
+    def registerUpdateCallback(self, callback): # Called by platforms
         self.updateCallbacks.append(callback)
 
     async def callUpdateCallbacks(self):
