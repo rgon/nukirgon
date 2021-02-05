@@ -283,7 +283,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data={
                 "hostname": self.config_host,
                 "port": self.config_port,
-                "serverHostname": self.server_host,
+                "server_hostname": self.server_host,
                 "token": self.config_token,
             },
         )

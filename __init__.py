@@ -30,14 +30,14 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Required("host"): str,
                 vol.Required("port"): cv.port,
                 vol.Required("token"): str,
-                vol.Required("serverHost"): str,
+                vol.Required("server_hostname"): str,
             }
         )
     },
     extra=vol.ALLOW_EXTRA,
 )
 
-CONFIG_SETTINGS = vol.Schema({vol.Required("serverHost"): str})
+# CONFIG_SETTINGS = vol.Schema({vol.Required("server_hostname"): str})
 
 CALLBACK_URL_BASE = f"nukicallback"
 
@@ -157,6 +157,7 @@ class NukiCoordinator:  # Handles the connection to a single bridge
 
     async def installBridgeCallback(self):
         ''' Add this callback to the bridge '''
+        _LOGGER.info(f"Installing callback url in lock: {self.callback_event_url}")
         try:
             await self.nukiBridge.callback_add(self.callback_event_url)
         except:
@@ -226,7 +227,7 @@ async def async_setup_entry(hass, configEntry):
     )
 
     coordinator = NukiCoordinator(
-        hass, bridge, configEntry.data.get("serverHostname"), configEntry.entry_id
+        hass, bridge, configEntry.data.get("server_hostname"), configEntry.entry_id
     )
 
     await coordinator.registerWebhook() # tries
