@@ -247,6 +247,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
     async def async_step_manualtoken_progressdone_mezzanine_err(self, user_input=None):
+        _LOGGER.info(f"Step manualtoken, mezz err {user_input}")
+
         return self.async_show_form(
             step_id="token",
             data_schema=vol.Schema({vol.Required("token"): str}),
@@ -257,6 +259,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_end_progressdone_mezzanine(self, user_input=None):
+        _LOGGER.info(f"Step manualtoken, mezz {user_input}")
         autoDiscoveredIP = util.get_local_ip()
 
         return self.async_show_form(
@@ -270,6 +273,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_pre_end(self, user_input=None):
+        _LOGGER.info(f"Step pre end, user_input {user_input}")
+
         if user_input is not None:
             if user_input["clearcallbacks"]:
                 await self.thisBridge.callback_remove_all()
