@@ -47,7 +47,7 @@
                 "title": "Testing Config. 4/4",
                 "description": "Connecting to the bridge with supplied token..."
             },
-            "end": {
+            "pre_end": {
                 "title": "Nuki Async API by rgon: Done!",
                 "description": "Finished configuration. Clear other callbacks if no other application is listening for Nuki push events using the HTTP API.",
                 "data": {

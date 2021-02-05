@@ -260,7 +260,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         autoDiscoveredIP = util.get_local_ip()
 
         return self.async_show_form(
-            step_id="end",
+            step_id="pre_end",
             data_schema=vol.Schema(
                 {
                     vol.Required("serverhost", default=autoDiscoveredIP): str,
@@ -269,7 +269,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
         )
 
-    async def async_step_end(self, user_input=None):
+    async def async_step_pre_end(self, user_input=None):
         if user_input is not None:
             if user_input["clearcallbacks"]:
                 await self.thisBridge.callback_remove_all()
@@ -277,6 +277,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             self.server_host = user_input["serverhost"]
             # else: raise error
+
+        _LOGGER.info(f"server_hostname {self.server_host}")
 
         return self.async_create_entry(
             title=self.thisBridge.bridgeId,
