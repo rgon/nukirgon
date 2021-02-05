@@ -10,6 +10,9 @@ from homeassistant.helpers.config_validation import (  # https://github.com/home
     make_entity_service_schema,
 )
 
+import logging
+_LOGGER = logging.getLogger(__name__)
+
 """
 TODO: read and base on this
 https://github.com/home-assistant/core/blob/2fb3be50ab0b806cfc099bc3671ad6c8ee4195e4/homeassistant/components/august/lock.py
@@ -143,37 +146,34 @@ class NukiLockPlatform(LockEntity):
 
     async def async_unlock(self, *args, code=None):
         """Unlock all or specified locks. A code to unlock the lock with may optionally be specified."""
-        print("UnlockArgs:", code, *args)
+        _LOGGER.debug(f"UnlockArgs: code={code}")
         if self.testCode(code):
             await self.lockObj.unlock()
         else:
-            print("wrong code", code)
+            _LOGGER.warning(f"Wrong code: code={code}")
 
     async def async_lock(self, code=None):
         """Lock all or specified locks. A code to lock the lock with may optionally be specified."""
         if self.testCode(code):
             await self.lockObj.lock()
         else:
-            print("wrong code", code)
+            _LOGGER.warning(f"Wrong code: code={code}")
 
     async def async_open(self, code=None):
         """Open (unlatch) all or specified locks. A code to open the lock with may optionally be specified."""
         if self.testCode(code):
             await self.lockObj.unlatch()
         else:
-            print("wrong code", code)
+            _LOGGER.warning(f"Wrong code: code={code}")
 
     async def async_lockngo(self, code=None):
         if self.testCode(code):
             await self.lockObj.lock_n_go()  # TODO: support for unlatch=False, block=False):
         else:
-            print("wrong code", code)
+            _LOGGER.warning(f"Wrong code: code={code}")
 
     # lock n go?
     # Sepparate component for opener: no sense to keep the state of an opener. Maybe just turn on when opening and back off after 1s
-
-    def set_option(self, night_sound=None):
-        print("Service,", night_sound)
 
 
 async def async_setup(hass, config_entry):
@@ -186,7 +186,7 @@ async def async_setup(hass, config_entry):
     platform.async_register_entity_service(
         SERVICE_LOCK_N_GO, LOCK_SERVICE_SCHEMA, "async_lockngo"
     )
-    print("async_setup finished")
+    _LOGGER.debug(f"Nuki Lock component setup finished: include service.")
 
 
 # Setup
@@ -197,14 +197,11 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     deviceList = []
     for lock in platform.devices:
-        print("device", lock)
+        _LOGGER.debug(f"Setting up lock: {lock}")
         device = NukiLockPlatform(platform, config_entry.data, lock)
         platform.registerUpdateCallback(device.async_schedule_update_ha_state)
 
         deviceList.append(device)
 
     platform = entity_platform.current_platform.get()
-    print("entityplatform", platform)
-
-    print("Starting with bridge:", platform)
     async_add_devices(deviceList)

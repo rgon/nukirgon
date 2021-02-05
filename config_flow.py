@@ -47,12 +47,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="communtication_error")
 
     async def getTokenInteractive(self):
-        print("Authing")
+        _LOGGER.debug("Authenticating interactively.")
         try:
             self.config_token = await self.thisBridge.auth()
-            print(self.config_token, "testing")
             await self.testConfig()
-            print("test config end")
+            _LOGGER.debug("Successfully ested config.")
             # await asyncio.sleep(2)
         except:
             return self.async_abort(
@@ -215,7 +214,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
     async def async_step_get_token_interactive(self, user_input=None):
-        print(self.config_token)
         if self.config_token:
             # continue, ok
             return self.async_show_progress_done(

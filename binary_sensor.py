@@ -83,11 +83,11 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
     deviceList = []
     for lock in platform.devices:
-        print("device", lock)
         device = NukiDoorSensorPlatform(config_entry.data, lock)
         platform.registerUpdateCallback(device.async_schedule_update_ha_state)
 
         deviceList.append(device)
 
     async_add_entities(deviceList, True)
-    print("Started door sensor platform.")
+    _LOGGER.debug("Started door sensor platform.")
+

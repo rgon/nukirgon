@@ -18,7 +18,6 @@ from aionuki import NukiBridge
 from aionuki.constants import BRIDGE_TYPE_HW
 
 import logging
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -81,14 +80,16 @@ async def webhook_handler(
 
     queryID = webhook_id.replace(
         CALLBACK_URL_BASE + "_", ""
-    )  # queryID = request.match_info["id"]
-    print("handling hook", webhook_id, queryID)
+    )
 
-    print("request id:", id)
     if queryID and queryID in hass.data[DOMAIN]:
         platform = hass.data[DOMAIN][queryID]
-        await platform.callback_event_handler(data)
-        print("lock exists", queryID)
+        try:
+            await platform.callback_event_handler(data)
+        except: # BridgeUninitializedException
+            _LOGGER.error(f"Error handling callback for {queryID}.")
+        else:
+            _LOGGER.debug(f"Lock exists. {queryID}")
         # return Response(text="ok")
     else:
         _LOGGER.error(f"Webhook handled for unknown Nuki Bridge {queryID}")
@@ -110,17 +111,12 @@ class NukiCoordinator:  # Handles the connection to a single bridge
 
         self.nukiBridge = bridge
 
-        self.updateCallbacks = []
-
         self.devices = []
-        print("Configuring Nuki Platform", id)
+        _LOGGER.debug("Configuring Nuki Platform {id}")
 
     async def registerWebhook(self):
         # nukicallback_c8a3dc372a5a52c5d5144880bc597fce
-        print(
-            "reginstering webhook",
-            CALLBACK_URL_BASE + f"_{self.id}",
-        )
+        _LOGGER.debug(f"Registering webhook {CALLBACK_URL_BASE}_{self.id}")
         try:
             self.hass.components.webhook.async_register(
                 DOMAIN,
@@ -129,48 +125,44 @@ class NukiCoordinator:  # Handles the connection to a single bridge
                 webhook_handler,
             )
         except ValueError:
-            _LOGGER.error(
-                "In <%s>, webhook_id <%s> already used", self.name, self.webhook_id
-            )
+            _LOGGER.error(f"In {self.name}, webhook {CALLBACK_URL_BASE}_{self.id} already used")
 
     @property
     def callback_event_url(self):
-        """Return url for push state updates (nuki callback sent to the event bus)."""
-        # return f"http://{self.serverHostname}:{self.hass.config.api.port}{CALLBACK_URL_BASE}/{self.id}"
+        ''' URL push state update wehbook url'''
         return f"http://{self.serverHostname}:{self.hass.config.api.port}/api/webhook/{CALLBACK_URL_BASE}_{self.id}"
 
-    async def callback_event_handler(self, event):
-        _LOGGER.debug("Callback from nuki bridge event: %s", event)
-        print(f"Answer is: {event}")
+    async def callback_event_handler(self, event): # Throws error
+        ''' Called from the webhook callback handler '''
+        _LOGGER.debug(f"Callback from nuki bridge event: {event}")
         await self.nukiBridge.interpret_callback(event)
-
-        await self.callUpdateCallbacks()
-        print("Finally:", (await self.nukiBridge.locks)[0].state_name)
-
-    def registerUpdateCallback(self, callback):
-        self.updateCallbacks.append(callback)
-
-    async def callUpdateCallbacks(self):
-        print("calling back")
-        for callback in self.updateCallbacks:
-            callback()
 
     # --- Interaction with the lock
     async def clearBridgeCallbacks(self):
-        # Clear pre-existing callbacks
-        for i in range(0, 3):
-            await self.nukiBridge.callback_remove(i)
+        ''' Clear pre-existing callbacks '''
+        try:
+            await self.nukiBridge.callback_remove_all()
+        except:
+            _LOGGER.error("Couldn't remove bridge callbacks.")
 
     async def installBridgeCallback(self):
-        await self.nukiBridge.callback_add(self.callback_event_url)
+        ''' Add this callback to the bridge '''
+        try:
+            await self.nukiBridge.callback_add(self.callback_event_url)
+        except:
+            _LOGGER.error("Couldn't remove bridge callbacks.")
 
     async def removeCallback(self):
-        return await self.nukiBridge.callback_remove_by_url(self.callback_event_url)
+        ''' Remove this callback from the bridge '''
+        try:
+            return await self.nukiBridge.callback_remove_by_url(self.callback_event_url)
+        except:
+            _LOGGER.error("Couldn't remove this callback from the bridge.")
 
     async def cleanup(self):
         await self.removeCallback()
         await self.nukiBridge.__aexit__(None, None, None)
-        print("cleaned up")
+        _LOGGER.debug("Cleaned up bridge object.")
 
     async def connect(self):
         await self.nukiBridge.connect()
@@ -179,9 +171,11 @@ class NukiCoordinator:  # Handles the connection to a single bridge
         self._wifiVersion = bridgeInfo.get("wifiFirmwareVersion")
         self._is_hardware_bridge = bridgeInfo.get("bridgeType") == BRIDGE_TYPE_HW
 
+        await self.installBridgeCallback()
+        await self.getDevices()
+
+
     async def getDevices(self):
-        # TODO
-        print("TODO: unimplemented")
         self.devices = await self.nukiBridge.getDevices()
         return self.devices
 
@@ -206,27 +200,7 @@ class NukiCoordinator:  # Handles the connection to a single bridge
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the nukirgon component."""
-
-    # try to connect to the lock, add the callback etc
-    # raise PlatformNotReady if unable to connect during platform setup (
-
-    # Handles expiration of auth credentials. Refresh if possible or print correct error and fail setup. If based on a config entry, should trigger a new config entry flow to re-authorize. (docs)
-    # Handles device/service unavailable. Log a warning once when unavailable, log once when reconnected.
-
-    # TODO: move to config flow
-
-    # except Exception as ex:
-    # _LOGGER.error("Unable to connect to wirelesstag.net service: %s", str(ex))
-    # hass.components.persistent_notification.create(
-    #    f"Error: {ex}<br />Please restart hass after fixing this.",
-    #    title=NOTIFICATION_TITLE,
-    #    notification_id=NOTIFICATION_ID,
-    # )
-    # return False
-
-    # await platform.removeCallback()
-
-    print("Platform setup")
+    _LOGGER.debug("Platform setup.")
 
     hass.data[DOMAIN] = {}
     return True
@@ -234,7 +208,6 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass, configEntry):
     """Set up nukirgon from a config entry."""
-    # TODO Store an API object for your platforms to access
 
     bridge = NukiBridge(
         configEntry.data.get("hostname"),
@@ -245,30 +218,23 @@ async def async_setup_entry(hass, configEntry):
     coordinator = NukiCoordinator(
         hass, bridge, configEntry.data.get("serverHostname"), configEntry.entry_id
     )
-    await coordinator.registerWebhook()
+
+    await coordinator.registerWebhook() # tries
 
     hass.data[DOMAIN][configEntry.entry_id] = coordinator
 
     try:
         await coordinator.connect()
     except Exception as ex:
-        _LOGGER.error("Unable to connect: %s", str(ex))
+        _LOGGER.error(f"Unable to connect to bridge: {str(ex)}")
+        # Set available false
     else:
-        await coordinator.installBridgeCallback()
-        print("Set up asynchronously", await coordinator.nukiBridge.callback_list())
-
-    # TODO: Get devices here
-    await coordinator.getDevices()
-
+        _LOGGER.debug("Set up platform coordinator asynchronously.")
+    
     # Use `hass.async_create_task` to avoid a circular dependency between the platform and the component
     async def setup_platforms():
         for platform in PLATFORMS:
-            print(
-                "Platform setup",
-                await hass.config_entries.async_forward_entry_setup(
-                    configEntry, platform
-                ),
-            )
+            await hass.config_entries.async_forward_entry_setup(configEntry, platform)
 
     hass.async_create_task(setup_platforms())
 
@@ -298,7 +264,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     )
 
     if unload_ok:
-        await hass.data[DOMAIN][entry.entry_id].cleanup()
+        try:
+            await hass.data[DOMAIN][entry.entry_id].cleanup()
+        except:
+            _LOGGER.error("Error unloading Nuki Platform.")
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
