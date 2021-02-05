@@ -102,17 +102,17 @@ class NukiCoordinator:  # Handles the connection to a single bridge
     _wifiVersion = 0
     _is_hardware_bridge = None
 
-    def __init__(self, hass, bridge, serverHostname, id):
+    def __init__(self, hass, bridge, serverHostname, _id):
         self.hass = hass
-        self.id = id
-        self.remove_event_listener = None
-
+        self.id = _id
         self.serverHostname = serverHostname
 
         self.nukiBridge = bridge
 
+        self.updateCallbacks = []
+
         self.devices = []
-        _LOGGER.debug("Configuring Nuki Platform {id}")
+        _LOGGER.debug("Configuring Nuki Platform {_id}")
 
     async def registerWebhook(self):
         # nukicallback_c8a3dc372a5a52c5d5144880bc597fce
@@ -127,6 +127,16 @@ class NukiCoordinator:  # Handles the connection to a single bridge
         except ValueError:
             _LOGGER.error(f"In {self.name}, webhook {CALLBACK_URL_BASE}_{self.id} already used")
 
+    def registerUpdateCallback(self, callback):
+        self.updateCallbacks.append(callback)
+
+    async def callUpdateCallbacks(self):
+        for callback in self.updateCallbacks:
+            try:
+                callback()
+            except: 
+                _LOGGER.error("Couldn't call an update notifier callback.")
+    
     @property
     def callback_event_url(self):
         ''' URL push state update wehbook url'''
