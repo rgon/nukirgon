@@ -283,14 +283,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.server_host = user_input["serverhost"]
             # else: raise error
 
-        _LOGGER.info(f"server_hostname {self.server_host}")
+            _LOGGER.info(f"server_hostname {self.server_host}")
 
-        return self.async_create_entry(
-            title=self.thisBridge.bridgeId,
-            data={
-                "hostname": self.config_host,
-                "port": self.config_port,
-                "server_hostname": self.server_host,
-                "token": self.config_token,
-            },
-        )
+            return self.async_create_entry(
+                title=self.thisBridge.bridgeId,
+                data={
+                    "hostname": self.config_host,
+                    "port": self.config_port,
+                    "server_hostname": self.server_host,
+                    "token": self.config_token,
+                },
+            )
